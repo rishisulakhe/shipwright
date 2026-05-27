@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: dd-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: dduser
+      POSTGRES_PASSWORD: ddpass
+      POSTGRES_DB: dockerdash
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dduser -d dockerdash"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dd-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: dd-backend
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://dduser:ddpass@db:5432/dockerdash?sslmode=disable
+      JWT_SECRET: change-me-in-production
+      LOG_LEVEL: debug
+      PORT: "8080"
+    volumes:
+      - ./backend:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - dd-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: dd-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/tsconfig.app.json:/app/tsconfig.app.json
+      - ./frontend/tsconfig.node.json:/app/tsconfig.node.json
+    networks:
+      - dd-network
+
+volumes:
+  pgdata:
+
+networks:
+  dd-network:
+    driver: bridge

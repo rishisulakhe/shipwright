@@ -1,0 +1,33 @@
+# Dependencies
+backend/tmp/
+frontend/node_modules/
+
+# Build output
+backend/tmp/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Docker
+pgdata/
+
+# Logs
+*.log
+
+# Test coverage
+coverage.out
+coverage.html
