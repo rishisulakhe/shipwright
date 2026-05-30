@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/rishisulakhe/shipwright/backend/internal/config"
+	appmiddleware "github.com/rishisulakhe/shipwright/backend/internal/middleware"
 	"github.com/rishisulakhe/shipwright/backend/internal/database"
 	"github.com/rishisulakhe/shipwright/backend/internal/handlers"
 	"github.com/rishisulakhe/shipwright/backend/internal/repository"
@@ -70,6 +71,17 @@ func main() {
 	r.Post("/api/auth/register", authHandler.Register)
 	r.Post("/api/auth/login", authHandler.Login)
 	r.Post("/api/auth/refresh", authHandler.Refresh)
+
+	r.Group(func(r chi.Router) {
+		r.Use(appmiddleware.AuthMiddleware([]byte(cfg.JWTSecret)))
+
+		meHandler := &handlers.MeHandler{}
+		r.Get("/api/me", meHandler.Me)
+
+		r.Route("/api/admin", func(r chi.Router) {
+			r.Use(appmiddleware.RequireRole("admin"))
+		})
+	})
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
