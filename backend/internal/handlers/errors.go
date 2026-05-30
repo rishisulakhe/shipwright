@@ -17,6 +17,14 @@ func JSONError(w http.ResponseWriter, status int, message string) {
 	json.NewEncoder(w).Encode(errorResponse{Error: message})
 }
 
+func JSONNotFound(w http.ResponseWriter, resource string) {
+	JSONError(w, http.StatusNotFound, resource+" not found")
+}
+
+func JSONForbidden(w http.ResponseWriter, message string) {
+	JSONError(w, http.StatusForbidden, message)
+}
+
 func parseUUID(s string) uuid.UUID {
 	id, err := uuid.Parse(s)
 	if err != nil {

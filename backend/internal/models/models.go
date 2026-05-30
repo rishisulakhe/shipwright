@@ -8,6 +8,31 @@ import (
 	"github.com/google/uuid"
 )
 
+type NullString struct {
+	sql.NullString
+}
+
+func (ns NullString) MarshalJSON() ([]byte, error) {
+	if !ns.Valid {
+		return []byte("null"), nil
+	}
+	return json.Marshal(ns.String)
+}
+
+func (ns *NullString) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		ns.Valid = false
+		return nil
+	}
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	ns.String = s
+	ns.Valid = true
+	return nil
+}
+
 type User struct {
 	ID           uuid.UUID  `json:"id"            db:"id"`
 	Username     string     `json:"username"      db:"username"`
@@ -26,11 +51,11 @@ type DockerHost struct {
 	Port      int            `json:"port"        db:"port"`
 	Protocol  string         `json:"protocol"    db:"protocol"`
 	AuthType  string         `json:"auth_type"   db:"auth_type"`
-	TLSCA     sql.NullString `json:"tls_ca"      db:"tls_ca"`
-	TLSCert   sql.NullString `json:"tls_cert"    db:"tls_cert"`
-	TLSKey    sql.NullString `json:"tls_key"     db:"tls_key"`
-	SSHUser   sql.NullString `json:"ssh_user"    db:"ssh_user"`
-	SSHKey    sql.NullString `json:"ssh_key"     db:"ssh_key"`
+	TLSCA     NullString `json:"tls_ca"      db:"tls_ca"`
+	TLSCert   NullString `json:"tls_cert"    db:"tls_cert"`
+	TLSKey    NullString `json:"tls_key"     db:"tls_key"`
+	SSHUser   NullString `json:"ssh_user"    db:"ssh_user"`
+	SSHKey    NullString `json:"ssh_key"     db:"ssh_key"`
 	IsActive  bool           `json:"is_active"   db:"is_active"`
 	CreatedAt time.Time      `json:"created_at"  db:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"  db:"updated_at"`
@@ -64,10 +89,10 @@ type Network struct {
 
 type Volume struct {
 	ID             uuid.UUID      `json:"id"               db:"id"`
-	DockerVolumeID sql.NullString `json:"docker_volume_id"  db:"docker_volume_id"`
-	Name           string         `json:"name"             db:"name"`
-	Driver         string         `json:"driver"           db:"driver"`
-	Mountpoint     sql.NullString `json:"mountpoint"        db:"mountpoint"`
+	DockerVolumeID NullString `json:"docker_volume_id"  db:"docker_volume_id"`
+	Name           string     `json:"name"             db:"name"`
+	Driver         string     `json:"driver"           db:"driver"`
+	Mountpoint     NullString `json:"mountpoint"        db:"mountpoint"`
 	HostID         uuid.UUID      `json:"host_id"          db:"host_id"`
 	CreatedAt      time.Time      `json:"created_at"       db:"created_at"`
 }

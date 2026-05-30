@@ -78,6 +78,13 @@ func main() {
 		meHandler := &handlers.MeHandler{}
 		r.Get("/api/me", meHandler.Me)
 
+		hostHandler := handlers.NewHostHandler(repos, []byte(cfg.JWTSecret))
+		r.Post("/api/hosts", hostHandler.Create)
+		r.Get("/api/hosts", hostHandler.List)
+		r.Get("/api/hosts/{hostID}", hostHandler.Get)
+		r.Delete("/api/hosts/{hostID}", hostHandler.Delete)
+		r.Post("/api/hosts/{hostID}/test-connection", hostHandler.TestConnection)
+
 		r.Route("/api/admin", func(r chi.Router) {
 			r.Use(appmiddleware.RequireRole("admin"))
 		})
