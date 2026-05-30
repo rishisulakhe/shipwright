@@ -15,6 +15,7 @@ import (
 	"github.com/rishisulakhe/shipwright/backend/internal/config"
 	"github.com/rishisulakhe/shipwright/backend/internal/database"
 	"github.com/rishisulakhe/shipwright/backend/internal/handlers"
+	"github.com/rishisulakhe/shipwright/backend/internal/repository"
 )
 
 func main() {
@@ -41,6 +42,8 @@ func main() {
 	}
 	defer db.Close()
 
+	repos := repository.NewRepositories(db)
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -59,6 +62,14 @@ func main() {
 	healthHandler := &handlers.HealthHandler{DB: db}
 	r.Get("/api/health", healthHandler.Health)
 	r.Get("/api/health/db", healthHandler.DBHealth)
+
+	authHandler := &handlers.AuthHandler{
+		Repos:     repos,
+		JWTSecret: []byte(cfg.JWTSecret),
+	}
+	r.Post("/api/auth/register", authHandler.Register)
+	r.Post("/api/auth/login", authHandler.Login)
+	r.Post("/api/auth/refresh", authHandler.Refresh)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
