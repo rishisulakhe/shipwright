@@ -7,6 +7,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { CreateHostPage } from './pages/CreateHostPage';
 import { HostDetailPage } from './pages/HostDetailPage';
 import { CreateContainerPage } from './pages/CreateContainerPage';
+import { ContainerDetailPage } from './pages/ContainerDetailPage';
 import { ManageNetworksPage } from './pages/ManageNetworksPage';
 import { CreateNetworkPage } from './pages/CreateNetworkPage';
 import { ManageVolumesPage } from './pages/ManageVolumesPage';
@@ -25,7 +26,7 @@ function App() {
           <Route path="/hosts/create" element={<CreateHostPage />} />
           <Route path="/hosts/:hostId" element={<HostDetailPage />} />
           <Route path="/hosts/:hostId/containers/create" element={<CreateContainerPage />} />
-          <Route path="/hosts/:hostId/containers/:containerId" element={<HostDetailPage />} />
+          <Route path="/hosts/:hostId/containers/:containerId" element={<ContainerDetailPage />} />
           <Route path="/hosts/:hostId/networks" element={<ManageNetworksPage />} />
           <Route path="/hosts/:hostId/networks/create" element={<CreateNetworkPage />} />
           <Route path="/hosts/:hostId/volumes" element={<ManageVolumesPage />} />

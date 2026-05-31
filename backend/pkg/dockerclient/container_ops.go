@@ -44,3 +44,11 @@ func (dc *DockerClient) ContainerStats(ctx context.Context, containerID string, 
 func (dc *DockerClient) ExecCreate(ctx context.Context, containerID string, opts container.ExecOptions) (container.ExecCreateResponse, error) {
 	return dc.Client.ContainerExecCreate(ctx, containerID, opts)
 }
+
+func (dc *DockerClient) ExecAttach(ctx context.Context, execID string, opts container.ExecAttachOptions) (types.HijackedResponse, error) {
+	return dc.Client.ContainerExecAttach(ctx, execID, opts)
+}
+
+func (dc *DockerClient) ExecResize(ctx context.Context, execID string, opts container.ResizeOptions) error {
+	return dc.Client.ContainerExecResize(ctx, execID, opts)
+}
