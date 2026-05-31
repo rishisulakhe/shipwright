@@ -979,76 +979,22 @@ pkill -f "go run" 2>/dev/null
 ---
 
 # PHASE 3 — Frontend Foundation
+ Framework: React with TypeScript(created using bun - React tailwind with shadcn)
+- Styling: Tailwind CSS
+- Component Library: Shadcn UI
+- Key Rules: Avoid generic system fonts.
+we are building frontend similar to Portainer
 
 ---
 
 ## Step 10: React Frontend Setup — Vite, Router, Tailwind, Axios
 
-### Concepts to Explore
-- Vite vs CRA (Create React App) — why Vite is superior
-- SPA routing with React Router v6+ (BrowserRouter, Routes, Route)
-- Component organization: pages vs components vs layouts
-- Axios interceptors for JWT token injection
-- Tailwind CSS utility-first workflow
-- Environment variables in Vite (`VITE_` prefix)
-- **Search**: "React Router v6 tutorial 2024", "Axios interceptors JWT React", "Vite proxy configuration"
 
-### Research Commands
-```bash
-# Explore Vite
-npx vite --help
 
-# Explore React Router
-npm view react-router-dom version
-
-# Check what we already have
-cd frontend && ls -la
-cat vite.config.js
-```
-
-### Build Commands
-```bash
-cd frontend
-
-# Core dependencies
-npm install react-router-dom axios
-
-# Dev dependencies for Tailwind
-npm install -D tailwindcss @tailwindcss/vite
-# Or: npx tailwindcss init -p  (for older Tailwind v3)
-
-# Check generated configs
-ls tailwind.config.js postcss.config.js 2>/dev/null
-```
 
 ### Coding Prompt
 ```
 Set up the React frontend foundation. Create/modify these files:
-
-1. frontend/tailwind.config.js:
-   ```js
-   /** @type {import('tailwindcss').Config} */
-   export default {
-     content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-     theme: { extend: {} },
-     plugins: [],
-   }
-   ```
-
-2. frontend/postcss.config.js:
-   Standard Tailwind + autoprefixer config
-
-3. frontend/src/index.css:
-   Replace with:
-   ```css
-   @tailwind base;
-   @tailwind components;
-   @tailwind utilities;
-   
-   body {
-     @apply bg-gray-900 text-gray-100 min-h-screen;
-   }
-   ```
 
 4. frontend/src/services/api.ts:
    - Create axios instance with baseURL from VITE_API_BASE_URL env var

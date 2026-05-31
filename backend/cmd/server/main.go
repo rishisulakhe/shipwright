@@ -89,6 +89,23 @@ func main() {
 		r.Get("/api/hosts/{hostID}/volumes", hostHandler.ListVolumes)
 		r.Get("/api/hosts/{hostID}/images", hostHandler.ListImages)
 
+		containerHandler := handlers.NewContainerHandler(repos, hostHandler.GetClients())
+		r.Post("/api/hosts/{hostID}/containers", containerHandler.Create)
+		r.Post("/api/hosts/{hostID}/containers/{containerID}/start", containerHandler.Start)
+		r.Post("/api/hosts/{hostID}/containers/{containerID}/stop", containerHandler.Stop)
+		r.Delete("/api/hosts/{hostID}/containers/{containerID}", containerHandler.Delete)
+
+		networkHandler := handlers.NewNetworkHandler(repos, hostHandler.GetClients())
+		r.Post("/api/hosts/{hostID}/networks", networkHandler.Create)
+		r.Delete("/api/hosts/{hostID}/networks/{networkID}", networkHandler.Delete)
+		r.Get("/api/hosts/{hostID}/networks/{networkID}", networkHandler.Inspect)
+		r.Post("/api/hosts/{hostID}/networks/{networkID}/connect", networkHandler.Connect)
+		r.Post("/api/hosts/{hostID}/networks/{networkID}/disconnect", networkHandler.Disconnect)
+
+		volumeHandler := handlers.NewVolumeHandler(repos, hostHandler.GetClients())
+		r.Post("/api/hosts/{hostID}/volumes", volumeHandler.Create)
+		r.Delete("/api/hosts/{hostID}/volumes/{volumeName}", volumeHandler.Delete)
+
 		r.Route("/api/admin", func(r chi.Router) {
 			r.Use(appmiddleware.RequireRole("admin"))
 		})

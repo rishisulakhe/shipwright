@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 )
 
 func (dc *DockerClient) ListContainers(ctx context.Context, all bool) ([]types.Container, error) {
@@ -16,8 +17,8 @@ func (dc *DockerClient) InspectContainer(ctx context.Context, containerID string
 	return dc.Client.ContainerInspect(ctx, containerID)
 }
 
-func (dc *DockerClient) CreateContainer(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, name string) (container.CreateResponse, error) {
-	return dc.Client.ContainerCreate(ctx, config, hostConfig, nil, nil, name)
+func (dc *DockerClient) CreateContainer(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, name string) (container.CreateResponse, error) {
+	return dc.Client.ContainerCreate(ctx, config, hostConfig, networkingConfig, nil, name)
 }
 
 func (dc *DockerClient) StartContainer(ctx context.Context, containerID string, opts container.StartOptions) error {
