@@ -73,13 +73,15 @@ func main() {
 	r.Post("/api/auth/login", authHandler.Login)
 	r.Post("/api/auth/refresh", authHandler.Refresh)
 
+	hostHandler := handlers.NewHostHandler(repos, []byte(cfg.JWTSecret))
+	logsHandler := handlers.NewLogsHandler(repos, hostHandler.GetClients())
+
 	r.Group(func(r chi.Router) {
 		r.Use(appmiddleware.AuthMiddleware([]byte(cfg.JWTSecret)))
 
 		meHandler := &handlers.MeHandler{}
 		r.Get("/api/me", meHandler.Me)
 
-		hostHandler := handlers.NewHostHandler(repos, []byte(cfg.JWTSecret))
 		r.Post("/api/hosts", hostHandler.Create)
 		r.Get("/api/hosts", hostHandler.List)
 		r.Get("/api/hosts/{hostID}", hostHandler.Get)
@@ -111,6 +113,9 @@ func main() {
 		r.Post("/api/hosts/{hostID}/images/pull", imageHandler.Pull)
 		r.Delete("/api/hosts/{hostID}/images/{imageID}", imageHandler.Delete)
 
+		r.Get("/api/hosts/{hostID}/containers/{containerID}/logs", logsHandler.Get)
+		r.Get("/api/hosts/{hostID}/containers/{containerID}", logsHandler.Inspect)
+
 		r.Route("/api/admin", func(r chi.Router) {
 			r.Use(appmiddleware.RequireRole("admin"))
 		})
@@ -119,6 +124,9 @@ func main() {
 	wsHub := ws.NewHub()
 	go wsHub.Run()
 	r.Get("/api/ws", ws.HandleWebSocket(wsHub, []byte(cfg.JWTSecret)))
+	r.Get("/api/ws/hosts/{hostID}/containers/{containerID}/logs", ws.HandleLogStream(repos, hostHandler.GetClients(), []byte(cfg.JWTSecret)))
+	r.Get("/api/ws/hosts/{hostID}/containers/{containerID}/stats", ws.HandleStatsStream(repos, hostHandler.GetClients(), []byte(cfg.JWTSecret)))
+	r.Get("/api/ws/hosts/{hostID}/containers/{containerID}/exec", ws.HandleExecStream(repos, hostHandler.GetClients(), []byte(cfg.JWTSecret)))
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,

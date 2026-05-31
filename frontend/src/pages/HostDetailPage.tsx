@@ -304,7 +304,9 @@ const ContainersTab: React.FC<ContainersTabProps> = ({ containers, onRefresh, ho
                 className="border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/50"
               >
                 <td className="px-4 py-3">
-                  <div className="font-mono text-sm text-white">{c.names[0]?.replace(/^\//, '') || c.id.slice(0, 12)}</div>
+                  <Link to={`/hosts/${hostId}/containers/${c.id}`} className="font-mono text-sm text-white hover:text-blue-400 hover:underline">
+                    {c.names[0]?.replace(/^\//, '') || c.id.slice(0, 12)}
+                  </Link>
                   <div className="font-mono text-xs text-zinc-600">{c.id.slice(0, 12)}</div>
                 </td>
                 <td className="px-4 py-3 font-mono text-sm text-zinc-300">{c.image}</td>
