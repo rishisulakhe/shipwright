@@ -30,6 +30,10 @@ func NewHostHandler(repos *repository.Repositories, jwtSecret []byte) *HostHandl
 	}
 }
 
+func (h *HostHandler) GetClients() map[uuid.UUID]*dockerclient.DockerClient {
+	return h.clients
+}
+
 type createHostRequest struct {
 	Name     string `json:"name"`
 	HostIP   string `json:"host_ip"`

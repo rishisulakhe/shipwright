@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useHost } from '../hooks/useHost';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import api from '../services/api';
 import { formatUnixTime, formatBytes, formatPorts } from '../utils/formatters';
 import {
   ArrowLeft,
@@ -12,6 +14,10 @@ import {
   HardDrive,
   Image,
   Circle,
+  Plus,
+  Play,
+  Square,
+  Trash2,
 } from 'lucide-react';
 
 type Tab = 'containers' | 'networks' | 'volumes' | 'images';
@@ -34,6 +40,7 @@ const statusDot: Record<string, string> = {
 
 export const HostDetailPage: React.FC = () => {
   const { hostId } = useParams<{ hostId: string }>();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('containers');
   const { host, containers, networks, volumes, images, loading, error, refresh, refreshContainers, refreshNetworks, refreshVolumes, refreshImages } = useHost(hostId || '');
 
@@ -144,13 +151,13 @@ export const HostDetailPage: React.FC = () => {
       {/* Tab Content */}
       <div className="rounded-lg border border-zinc-800 bg-zinc-900">
         {activeTab === 'containers' && (
-          <ContainersTab containers={containers} onRefresh={refreshContainers} />
+          <ContainersTab containers={containers} onRefresh={refreshContainers} hostId={hostId || ''} onCreateClick={() => navigate(`/hosts/${hostId}/containers/create`)} />
         )}
         {activeTab === 'networks' && (
-          <NetworksTab networks={networks} onRefresh={refreshNetworks} />
+          <NetworksTab networks={networks} onRefresh={refreshNetworks} onViewAll={() => navigate(`/hosts/${hostId}/networks`)} />
         )}
         {activeTab === 'volumes' && (
-          <VolumesTab volumes={volumes} onRefresh={refreshVolumes} />
+          <VolumesTab volumes={volumes} onRefresh={refreshVolumes} onViewAll={() => navigate(`/hosts/${hostId}/volumes`)} />
         )}
         {activeTab === 'images' && (
           <ImagesTab images={images} onRefresh={refreshImages} />
@@ -170,17 +177,66 @@ interface ContainerInfo {
   created: number;
 }
 
-const ContainersTab: React.FC<{ containers: ContainerInfo[]; onRefresh: () => void }> = ({ containers, onRefresh }) => {
+interface ContainersTabProps {
+  containers: ContainerInfo[];
+  onRefresh: () => void;
+  hostId: string;
+  onCreateClick: () => void;
+}
+
+const ContainersTab: React.FC<ContainersTabProps> = ({ containers, onRefresh, hostId, onCreateClick }) => {
   const [sortKey, setSortKey] = useState<'name' | 'state' | 'created'>('name');
   const [filter, setFilter] = useState('');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<ContainerInfo | null>(null);
+
+  const handleStart = async (containerId: string) => {
+    setActionLoading(containerId);
+    try {
+      await api.post(`/api/hosts/${hostId}/containers/${containerId}/start`);
+      onRefresh();
+    } catch { /* error handled by refresh */ }
+    setActionLoading(null);
+  };
+
+  const handleStop = async (containerId: string) => {
+    setActionLoading(containerId);
+    try {
+      await api.post(`/api/hosts/${hostId}/containers/${containerId}/stop`);
+      onRefresh();
+    } catch { /* error handled by refresh */ }
+    setActionLoading(null);
+  };
+
+  const handleDelete = async (containerId: string) => {
+    setActionLoading(containerId);
+    try {
+      await api.delete(`/api/hosts/${hostId}/containers/${containerId}?force=true`);
+      onRefresh();
+    } catch { /* error handled by refresh */ }
+    setConfirmDelete(null);
+    setActionLoading(null);
+  };
 
   if (containers.length === 0) {
     return (
-      <EmptyState
-        icon={<Box className="h-6 w-6" />}
-        label="Containers"
-        onRefresh={onRefresh}
-      />
+      <div>
+        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+          <span className="text-sm text-zinc-500">0 containers</span>
+          <button
+            onClick={onCreateClick}
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Create Container
+          </button>
+        </div>
+        <EmptyState
+          icon={<Box className="h-6 w-6" />}
+          label="Containers"
+          onRefresh={onRefresh}
+        />
+      </div>
     );
   }
 
@@ -203,22 +259,31 @@ const ContainersTab: React.FC<{ containers: ContainerInfo[]; onRefresh: () => vo
   return (
     <div>
       <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-        <input
-          type="text"
-          placeholder="Filter containers..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
-        />
-        <select
-          value={sortKey}
-          onChange={(e) => setSortKey(e.target.value as 'name' | 'state' | 'created')}
-          className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none"
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="Filter containers..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+          />
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as 'name' | 'state' | 'created')}
+            className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none"
+          >
+            <option value="name">Sort by Name</option>
+            <option value="state">Sort by State</option>
+            <option value="created">Sort by Created</option>
+          </select>
+        </div>
+        <button
+          onClick={onCreateClick}
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500"
         >
-          <option value="name">Sort by Name</option>
-          <option value="state">Sort by State</option>
-          <option value="created">Sort by Created</option>
-        </select>
+          <Plus className="h-3.5 w-3.5" />
+          Create
+        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -229,14 +294,14 @@ const ContainersTab: React.FC<{ containers: ContainerInfo[]; onRefresh: () => vo
               <th className="px-4 py-2.5 font-medium">Status</th>
               <th className="px-4 py-2.5 font-medium">Ports</th>
               <th className="px-4 py-2.5 font-medium">Created</th>
+              <th className="px-4 py-2.5 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((c) => (
               <tr
                 key={c.id}
-                className="cursor-pointer border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/50"
-                onClick={() => { /* detail page later */ }}
+                className="border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/50"
               >
                 <td className="px-4 py-3">
                   <div className="font-mono text-sm text-white">{c.names[0]?.replace(/^\//, '') || c.id.slice(0, 12)}</div>
@@ -251,11 +316,51 @@ const ContainersTab: React.FC<{ containers: ContainerInfo[]; onRefresh: () => vo
                 </td>
                 <td className="px-4 py-3 font-mono text-sm text-zinc-400">{formatPorts(c.ports)}</td>
                 <td className="px-4 py-3 text-sm text-zinc-500">{formatUnixTime(c.created)}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1">
+                    {(c.state === 'exited' || c.state === 'created' || c.state === 'dead') && (
+                      <button
+                        onClick={() => handleStart(c.id)}
+                        disabled={actionLoading === c.id}
+                        className="rounded p-1 text-emerald-400 transition-colors hover:bg-emerald-500/10 disabled:opacity-50"
+                        title="Start"
+                      >
+                        <Play className="h-4 w-4" />
+                      </button>
+                    )}
+                    {c.state === 'running' && (
+                      <button
+                        onClick={() => handleStop(c.id)}
+                        disabled={actionLoading === c.id}
+                        className="rounded p-1 text-yellow-400 transition-colors hover:bg-yellow-500/10 disabled:opacity-50"
+                        title="Stop"
+                      >
+                        <Square className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setConfirmDelete(c)}
+                      className="rounded p-1 text-red-400 transition-colors hover:bg-red-500/10"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete Container"
+          message={`Are you sure you want to delete "${confirmDelete.names[0]?.replace(/^\//, '') || confirmDelete.id.slice(0, 12)}"? This action cannot be undone.`}
+          confirmLabel="Delete"
+          onConfirm={() => handleDelete(confirmDelete.id)}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
     </div>
   );
 };
@@ -268,41 +373,60 @@ interface NetworkInfo {
   internal: boolean;
 }
 
-const NetworksTab: React.FC<{ networks: NetworkInfo[]; onRefresh: () => void }> = ({ networks, onRefresh }) => {
+const NetworksTab: React.FC<{ networks: NetworkInfo[]; onRefresh: () => void; onViewAll: () => void }> = ({ networks, onRefresh, onViewAll }) => {
   if (networks.length === 0) {
-    return <EmptyState icon={<Network className="h-6 w-6" />} label="Networks" onRefresh={onRefresh} />;
+    return (
+      <div>
+        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+          <span className="text-sm text-zinc-500">0 networks</span>
+          <button onClick={onViewAll} className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500">
+            <Plus className="h-3.5 w-3.5" />
+            Manage
+          </button>
+        </div>
+        <EmptyState icon={<Network className="h-6 w-6" />} label="Networks" onRefresh={onRefresh} />
+      </div>
+    );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-800 text-xs text-zinc-500">
-            <th className="px-4 py-2.5 font-medium">Name</th>
-            <th className="px-4 py-2.5 font-medium">Driver</th>
-            <th className="px-4 py-2.5 font-medium">Scope</th>
-            <th className="px-4 py-2.5 font-medium">Internal</th>
-            <th className="px-4 py-2.5 font-medium">ID</th>
-          </tr>
-        </thead>
-        <tbody>
-          {networks.map((n) => (
-            <tr key={n.id} className="border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/50">
-              <td className="px-4 py-3 font-medium text-white">{n.name}</td>
-              <td className="px-4 py-3 text-zinc-400">{n.driver}</td>
-              <td className="px-4 py-3 text-zinc-400">{n.scope}</td>
-              <td className="px-4 py-3">
-                {n.internal ? (
-                  <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-xs text-blue-400">Yes</span>
-                ) : (
-                  <span className="text-zinc-500">No</span>
-                )}
-              </td>
-              <td className="px-4 py-3 font-mono text-xs text-zinc-600">{n.id.slice(0, 12)}</td>
+    <div>
+      <div className="flex items-center justify-end border-b border-zinc-800 px-4 py-3">
+        <button onClick={onViewAll} className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500">
+          <Plus className="h-3.5 w-3.5" />
+          Manage
+        </button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-zinc-800 text-xs text-zinc-500">
+              <th className="px-4 py-2.5 font-medium">Name</th>
+              <th className="px-4 py-2.5 font-medium">Driver</th>
+              <th className="px-4 py-2.5 font-medium">Scope</th>
+              <th className="px-4 py-2.5 font-medium">Internal</th>
+              <th className="px-4 py-2.5 font-medium">ID</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {networks.map((n) => (
+              <tr key={n.id} className="border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/50">
+                <td className="px-4 py-3 font-medium text-white">{n.name}</td>
+                <td className="px-4 py-3 text-zinc-400">{n.driver}</td>
+                <td className="px-4 py-3 text-zinc-400">{n.scope}</td>
+                <td className="px-4 py-3">
+                  {n.internal ? (
+                    <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-xs text-blue-400">Yes</span>
+                  ) : (
+                    <span className="text-zinc-500">No</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 font-mono text-xs text-zinc-600">{n.id.slice(0, 12)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
@@ -314,13 +438,31 @@ interface VolumeInfo {
   created_at: string;
 }
 
-const VolumesTab: React.FC<{ volumes: VolumeInfo[]; onRefresh: () => void }> = ({ volumes, onRefresh }) => {
+const VolumesTab: React.FC<{ volumes: VolumeInfo[]; onRefresh: () => void; onViewAll: () => void }> = ({ volumes, onRefresh, onViewAll }) => {
   if (volumes.length === 0) {
-    return <EmptyState icon={<HardDrive className="h-6 w-6" />} label="Volumes" onRefresh={onRefresh} />;
+    return (
+      <div>
+        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+          <span className="text-sm text-zinc-500">0 volumes</span>
+          <button onClick={onViewAll} className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500">
+            <Plus className="h-3.5 w-3.5" />
+            Manage
+          </button>
+        </div>
+        <EmptyState icon={<HardDrive className="h-6 w-6" />} label="Volumes" onRefresh={onRefresh} />
+      </div>
+    );
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div>
+      <div className="flex items-center justify-end border-b border-zinc-800 px-4 py-3">
+        <button onClick={onViewAll} className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500">
+          <Plus className="h-3.5 w-3.5" />
+          Manage
+        </button>
+      </div>
+      <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-zinc-800 text-xs text-zinc-500">
@@ -338,7 +480,8 @@ const VolumesTab: React.FC<{ volumes: VolumeInfo[]; onRefresh: () => void }> = (
             </tr>
           ))}
         </tbody>
-      </table>
+</table>
+      </div>
     </div>
   );
 };
