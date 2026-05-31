@@ -170,8 +170,10 @@ func (h *LogsHandler) Inspect(w http.ResponseWriter, r *http.Request) {
 	}
 
 	envVars := make([]string, 0)
+	labels := make(map[string]string)
 	if inspectData.Config != nil {
 		envVars = inspectData.Config.Env
+		labels = inspectData.Config.Labels
 	}
 
 	portBindings := make(map[string]interface{})
@@ -222,6 +224,7 @@ func (h *LogsHandler) Inspect(w http.ResponseWriter, r *http.Request) {
 		},
 		"created":      inspectData.Created,
 		"environment":  envVars,
+		"labels":       labels,
 		"ports":         portBindings,
 		"networks":     networks,
 		"mounts":        mounts,
