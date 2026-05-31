@@ -84,6 +84,10 @@ func main() {
 		r.Get("/api/hosts/{hostID}", hostHandler.Get)
 		r.Delete("/api/hosts/{hostID}", hostHandler.Delete)
 		r.Post("/api/hosts/{hostID}/test-connection", hostHandler.TestConnection)
+		r.Get("/api/hosts/{hostID}/containers", hostHandler.ListContainers)
+		r.Get("/api/hosts/{hostID}/networks", hostHandler.ListNetworks)
+		r.Get("/api/hosts/{hostID}/volumes", hostHandler.ListVolumes)
+		r.Get("/api/hosts/{hostID}/images", hostHandler.ListImages)
 
 		r.Route("/api/admin", func(r chi.Router) {
 			r.Use(appmiddleware.RequireRole("admin"))
