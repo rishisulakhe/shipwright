@@ -5,6 +5,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CreateHostPage } from './pages/CreateHostPage';
+import { HostDetailPage } from './pages/HostDetailPage';
 
 function App() {
   return (
@@ -16,8 +17,8 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/hosts/create" element={<CreateHostPage />} />
-          <Route path="/hosts/:hostId" element={<DashboardPage />} />
-          <Route path="/hosts/:hostId/containers/:containerId" element={<DashboardPage />} />
+          <Route path="/hosts/:hostId" element={<HostDetailPage />} />
+          <Route path="/hosts/:hostId/containers/:containerId" element={<HostDetailPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
