@@ -17,6 +17,7 @@ import (
 	"github.com/rishisulakhe/shipwright/backend/internal/database"
 	"github.com/rishisulakhe/shipwright/backend/internal/handlers"
 	"github.com/rishisulakhe/shipwright/backend/internal/repository"
+	"github.com/rishisulakhe/shipwright/backend/internal/ws"
 )
 
 func main() {
@@ -114,6 +115,10 @@ func main() {
 			r.Use(appmiddleware.RequireRole("admin"))
 		})
 	})
+
+	wsHub := ws.NewHub()
+	go wsHub.Run()
+	r.Get("/api/ws", ws.HandleWebSocket(wsHub, []byte(cfg.JWTSecret)))
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
