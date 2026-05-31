@@ -106,6 +106,10 @@ func main() {
 		r.Post("/api/hosts/{hostID}/volumes", volumeHandler.Create)
 		r.Delete("/api/hosts/{hostID}/volumes/{volumeName}", volumeHandler.Delete)
 
+		imageHandler := handlers.NewImageHandler(repos, hostHandler.GetClients())
+		r.Post("/api/hosts/{hostID}/images/pull", imageHandler.Pull)
+		r.Delete("/api/hosts/{hostID}/images/{imageID}", imageHandler.Delete)
+
 		r.Route("/api/admin", func(r chi.Router) {
 			r.Use(appmiddleware.RequireRole("admin"))
 		})

@@ -11,6 +11,7 @@ import { ManageNetworksPage } from './pages/ManageNetworksPage';
 import { CreateNetworkPage } from './pages/CreateNetworkPage';
 import { ManageVolumesPage } from './pages/ManageVolumesPage';
 import { CreateVolumePage } from './pages/CreateVolumePage';
+import { ManageImagesPage } from './pages/ManageImagesPage';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/hosts/:hostId/networks/create" element={<CreateNetworkPage />} />
           <Route path="/hosts/:hostId/volumes" element={<ManageVolumesPage />} />
           <Route path="/hosts/:hostId/volumes/create" element={<CreateVolumePage />} />
+          <Route path="/hosts/:hostId/images" element={<ManageImagesPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

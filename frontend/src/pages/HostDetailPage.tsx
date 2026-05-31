@@ -160,7 +160,7 @@ export const HostDetailPage: React.FC = () => {
           <VolumesTab volumes={volumes} onRefresh={refreshVolumes} onViewAll={() => navigate(`/hosts/${hostId}/volumes`)} />
         )}
         {activeTab === 'images' && (
-          <ImagesTab images={images} onRefresh={refreshImages} />
+          <ImagesTab images={images} onRefresh={refreshImages} onViewAll={() => navigate(`/hosts/${hostId}/images`)} />
         )}
       </div>
     </div>
@@ -493,37 +493,56 @@ interface ImageInfo {
   created: number;
 }
 
-const ImagesTab: React.FC<{ images: ImageInfo[]; onRefresh: () => void }> = ({ images, onRefresh }) => {
+const ImagesTab: React.FC<{ images: ImageInfo[]; onRefresh: () => void; onViewAll: () => void }> = ({ images, onRefresh, onViewAll }) => {
   if (images.length === 0) {
-    return <EmptyState icon={<Image className="h-6 w-6" />} label="Images" onRefresh={onRefresh} />;
+    return (
+      <div>
+        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+          <span className="text-sm text-zinc-500">0 images</span>
+          <button onClick={onViewAll} className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500">
+            <Plus className="h-3.5 w-3.5" />
+            Manage
+          </button>
+        </div>
+        <EmptyState icon={<Image className="h-6 w-6" />} label="Images" onRefresh={onRefresh} />
+      </div>
+    );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-800 text-xs text-zinc-500">
-            <th className="px-4 py-2.5 font-medium">Tags</th>
-            <th className="px-4 py-2.5 font-medium">Size</th>
-            <th className="px-4 py-2.5 font-medium">Created</th>
-            <th className="px-4 py-2.5 font-medium">ID</th>
-          </tr>
-        </thead>
-        <tbody>
-          {images.map((img) => (
-            <tr key={img.id} className="border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/50">
-              <td className="px-4 py-3">
-                {img.repo_tags.map((tag) => (
-                  <div key={tag} className="font-mono text-sm text-white">{tag}</div>
-                ))}
-              </td>
-              <td className="px-4 py-3 text-zinc-400">{formatBytes(img.size)}</td>
-              <td className="px-4 py-3 text-sm text-zinc-500">{formatUnixTime(img.created)}</td>
-              <td className="px-4 py-3 font-mono text-xs text-zinc-600">{img.id.replace(/^sha256:/, '').slice(0, 12)}</td>
+    <div>
+      <div className="flex items-center justify-end border-b border-zinc-800 px-4 py-3">
+        <button onClick={onViewAll} className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500">
+          <Plus className="h-3.5 w-3.5" />
+          Manage
+        </button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-zinc-800 text-xs text-zinc-500">
+              <th className="px-4 py-2.5 font-medium">Tags</th>
+              <th className="px-4 py-2.5 font-medium">Size</th>
+              <th className="px-4 py-2.5 font-medium">Created</th>
+              <th className="px-4 py-2.5 font-medium">ID</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {images.map((img) => (
+              <tr key={img.id} className="border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/50">
+                <td className="px-4 py-3">
+                  {img.repo_tags.map((tag) => (
+                    <div key={tag} className="font-mono text-sm text-white">{tag}</div>
+                  ))}
+                </td>
+                <td className="px-4 py-3 text-zinc-400">{formatBytes(img.size)}</td>
+                <td className="px-4 py-3 text-sm text-zinc-500">{formatUnixTime(img.created)}</td>
+                <td className="px-4 py-3 font-mono text-xs text-zinc-600">{img.id.replace(/^sha256:/, '').slice(0, 12)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
