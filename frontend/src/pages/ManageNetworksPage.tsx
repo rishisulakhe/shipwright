@@ -100,7 +100,7 @@ export const ManageNetworksPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="page-bg" style={{ minHeight: '100vh', padding: '2rem' }}>
       <button
         onClick={() => navigate(`/hosts/${hostId}`)}
         className="mb-6 flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
@@ -114,14 +114,14 @@ export const ManageNetworksPage: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={fetchNetworks}
-            className="flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+            className="btn-secondary flex items-center gap-1.5"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh
           </button>
           <button
             onClick={() => navigate(`/hosts/${hostId}/networks/create`)}
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+            className="btn-primary flex items-center gap-1.5"
           >
             <Plus className="h-4 w-4" />
             Create Network
@@ -130,7 +130,7 @@ export const ManageNetworksPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-800 bg-red-900/20 px-4 py-3 text-sm text-red-400">
+        <div className="mb-4 rounded-lg bg-red-500/20 border border-red-500/30 px-4 py-3 text-sm text-red-400">
           {error}
           <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
         </div>
@@ -141,7 +141,7 @@ export const ManageNetworksPage: React.FC = () => {
           <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
         </div>
       ) : networks.length === 0 ? (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-16 text-center">
+        <div className="glass-card-static px-4 py-16 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800">
             <Network className="h-6 w-6 text-zinc-500" />
           </div>
@@ -150,7 +150,7 @@ export const ManageNetworksPage: React.FC = () => {
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900">
+          <div className="glass-card-static">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-zinc-800 text-xs text-zinc-500">
@@ -202,7 +202,7 @@ export const ManageNetworksPage: React.FC = () => {
           </div>
 
           {detailNetwork && (
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+            <div className="glass-card-static p-4">
               <h2 className="mb-4 text-lg font-semibold text-white">{detailNetwork.name}</h2>
               <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
                 <div className="text-zinc-500">ID</div>
@@ -245,12 +245,12 @@ export const ManageNetworksPage: React.FC = () => {
                   value={connectContainerId}
                   onChange={(e) => setConnectContainerId(e.target.value)}
                   placeholder="Container ID or name"
-                  className="flex-1 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                  className="glass-input flex-1"
                 />
                 <button
                   onClick={handleConnect}
                   disabled={connectLoading || !connectContainerId.trim()}
-                  className="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
+                  className="btn-primary flex items-center gap-1.5 disabled:opacity-50"
                 >
                   <Link2 className="h-4 w-4" />
                   Connect
