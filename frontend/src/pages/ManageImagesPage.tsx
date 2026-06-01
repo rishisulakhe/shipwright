@@ -71,7 +71,7 @@ export const ManageImagesPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="page-bg" style={{ minHeight: '100vh', padding: '2rem' }}>
       <button
         onClick={() => navigate(`/hosts/${hostId}`)}
         className="mb-6 flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
@@ -85,14 +85,14 @@ export const ManageImagesPage: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={fetchImages}
-            className="flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+            className="btn-secondary flex items-center gap-1.5"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh
           </button>
           <button
             onClick={() => setShowPullModal(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+            className="btn-primary flex items-center gap-1.5"
           >
             <Plus className="h-4 w-4" />
             Pull Image
@@ -101,7 +101,7 @@ export const ManageImagesPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-800 bg-red-900/20 px-4 py-3 text-sm text-red-400">
+        <div className="mb-4 rounded-lg bg-red-500/20 border border-red-500/30 px-4 py-3 text-sm text-red-400">
           {error}
           <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
         </div>
@@ -112,7 +112,7 @@ export const ManageImagesPage: React.FC = () => {
           <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
         </div>
       ) : images.length === 0 ? (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-16 text-center">
+        <div className="glass-card-static px-4 py-16 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800">
             <Image className="h-6 w-6 text-zinc-500" />
           </div>
@@ -120,7 +120,7 @@ export const ManageImagesPage: React.FC = () => {
           <p className="mt-1 text-sm text-zinc-500">Pull your first image to get started.</p>
           <button
             onClick={() => setShowPullModal(true)}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+            className="btn-primary mt-4 inline-flex items-center gap-1.5"
           >
             <Plus className="h-4 w-4" />
             Pull Image
@@ -136,12 +136,12 @@ export const ManageImagesPage: React.FC = () => {
                 placeholder="Search images..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2.5 pl-10 pr-3 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none"
+                className="glass-input w-full py-2.5 pl-10 pr-3 text-sm"
               />
             </div>
           </div>
 
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900">
+          <div className="glass-card-static">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-zinc-800 text-xs text-zinc-500">

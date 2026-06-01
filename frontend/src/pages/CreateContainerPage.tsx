@@ -101,7 +101,7 @@ export const CreateContainerPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="page-bg" style={{ minHeight: '100vh', padding: '2rem' }}>
       <button
         onClick={() => navigate(`/hosts/${hostId}`)}
         className="mb-6 flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
@@ -112,33 +112,33 @@ export const CreateContainerPage: React.FC = () => {
 
       <h1 className="mb-6 text-2xl font-bold text-white">Create Container</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="glass-card-static space-y-6">
         {error && (
-          <div className="rounded-lg border border-red-800 bg-red-900/20 px-4 py-3 text-sm text-red-400">
+          <div className="rounded-lg bg-red-500/20 border border-red-500/30 px-4 py-3 text-sm text-red-400">
             {error}
           </div>
         )}
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-zinc-400">Container Name</label>
+          <label className="glass-label">Container Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="glass-input w-full"
             placeholder="my-container (optional — Docker auto-generates if empty)"
           />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-zinc-400">
+          <label className="glass-label">
             Image <span className="text-red-400">*</span>
           </label>
           <input
             type="text"
             value={image}
             onChange={(e) => setImage(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="glass-input w-full"
             placeholder="nginx:alpine"
             required
           />
@@ -146,7 +146,7 @@ export const CreateContainerPage: React.FC = () => {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-zinc-400">Port Mappings</label>
+          <label className="glass-label">Port Mappings</label>
           <DynamicListInput
             items={ports}
             onChange={setPorts}
@@ -156,7 +156,7 @@ export const CreateContainerPage: React.FC = () => {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-zinc-400">Environment Variables</label>
+          <label className="glass-label">Environment Variables</label>
           <DynamicListInput
             items={envVars}
             onChange={setEnvVars}
@@ -166,7 +166,7 @@ export const CreateContainerPage: React.FC = () => {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-zinc-400">Volume Mounts</label>
+          <label className="glass-label">Volume Mounts</label>
           <DynamicListInput
             items={volumes}
             onChange={setVolumes}
@@ -177,11 +177,11 @@ export const CreateContainerPage: React.FC = () => {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-400">Restart Policy</label>
+            <label className="glass-label">Restart Policy</label>
             <select
               value={restartPolicy}
               onChange={(e) => setRestartPolicy(e.target.value)}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="glass-select w-full"
             >
               <option value="no">No (never restart)</option>
               <option value="always">Always</option>
@@ -191,11 +191,11 @@ export const CreateContainerPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-400">Network</label>
+            <label className="glass-label">Network</label>
             <select
               value={networkName}
               onChange={(e) => setNetworkName(e.target.value)}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="glass-select w-full"
             >
               <option value="">Default (bridge)</option>
               {networks.map((n) => (
@@ -224,7 +224,7 @@ export const CreateContainerPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading || !image}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
+            className="btn-primary flex items-center gap-2 disabled:opacity-50"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {loading ? 'Creating...' : 'Create Container'}
@@ -232,7 +232,7 @@ export const CreateContainerPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate(`/hosts/${hostId}`)}
-            className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+            className="btn-secondary"
           >
             Cancel
           </button>

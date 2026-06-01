@@ -271,7 +271,7 @@ export const ContainerDetailPage: React.FC = () => {
   ];
 
   return (
-    <div>
+    <div className="page-bg" style={{ minHeight: '100vh', padding: '2rem' }}>
       <Link to={`/hosts/${hostId}`} className="mb-6 inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-white">
         <ArrowLeft className="h-4 w-4" />
         Back to Host
@@ -303,13 +303,13 @@ export const ContainerDetailPage: React.FC = () => {
         />
       </div>
 
-      <div className="mb-6 flex gap-1 border-b border-zinc-800 overflow-x-auto">
+      <div className="mb-6 flex gap-1 border-b border-white/10 overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-              activeTab === tab.id ? 'border-blue-500 text-blue-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              activeTab === tab.id ? 'border-blue-500 text-blue-400' : 'border-transparent text-zinc-400 hover:text-white'
             }`}
           >
             {tab.icon}
@@ -331,7 +331,7 @@ export const ContainerDetailPage: React.FC = () => {
             ]} />
 
             {container.environment && container.environment.length > 0 && (
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+              <div className="glass-card-static">
                 <h2 className="mb-3 text-sm font-medium text-zinc-400">Environment Variables</h2>
                 <div className="max-h-64 space-y-1 overflow-y-auto font-mono text-xs">
                   {container.environment.map((env, i) => (
@@ -345,7 +345,7 @@ export const ContainerDetailPage: React.FC = () => {
             )}
 
             {container.labels && Object.keys(container.labels).length > 0 && (
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+              <div className="glass-card-static">
                 <h2 className="mb-3 text-sm font-medium text-zinc-400">Labels</h2>
                 <div className="max-h-64 space-y-1 overflow-y-auto font-mono text-xs">
                   {Object.entries(container.labels).map(([key, value]) => (
@@ -361,7 +361,7 @@ export const ContainerDetailPage: React.FC = () => {
 
           <div className="space-y-6">
             {container.ports && Object.keys(container.ports).length > 0 && (
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+              <div className="glass-card-static">
                 <h2 className="mb-3 text-sm font-medium text-zinc-400">Port Mappings</h2>
                 <div className="space-y-1">
                   {Object.entries(container.ports).map(([port, bindings]: [string, any]) => (
@@ -378,7 +378,7 @@ export const ContainerDetailPage: React.FC = () => {
             )}
 
             {container.networks && Object.keys(container.networks).length > 0 && (
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+              <div className="glass-card-static">
                 <h2 className="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-400">
                   <Network className="h-4 w-4" />
                   Networks
@@ -395,7 +395,7 @@ export const ContainerDetailPage: React.FC = () => {
             )}
 
             {container.mounts && container.mounts.length > 0 && (
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+              <div className="glass-card-static">
                 <h2 className="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-400">
                   <HardDrive className="h-4 w-4" />
                   Mounts
@@ -501,7 +501,7 @@ export const ContainerDetailPage: React.FC = () => {
             </div>
           )}
 
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+          <div className="glass-card-static">
             <h2 className="mb-3 text-sm font-medium text-zinc-400">Connected Networks</h2>
             {container.networks && Object.keys(container.networks).length > 0 ? (
               <div className="space-y-2">
@@ -529,7 +529,7 @@ export const ContainerDetailPage: React.FC = () => {
             )}
           </div>
 
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+          <div className="glass-card-static">
             <h2 className="mb-3 text-sm font-medium text-zinc-400">Connect to Network</h2>
             {availableNetworks.length > 0 ? (
               <div className="flex gap-3">
@@ -560,7 +560,7 @@ export const ContainerDetailPage: React.FC = () => {
       )}
 
       {activeTab === 'volumes' && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+        <div className="glass-card-static">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-400">
             <HardDrive className="h-4 w-4" />
             Mounts & Volumes

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
-import { ArrowLeft, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
 
 export const CreateHostPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,232 +17,125 @@ export const CreateHostPage: React.FC = () => {
   const [sshKey, setSshKey] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const [testResult, setTestResult] = useState<{ connected: boolean; error?: string } | null>(null);
-  const [testing, setTesting] = useState(false);
-  const [createdHostId, setCreatedHostId] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
-      const response = await api.post('/api/hosts', {
-        name,
-        host_ip: protocol === 'unix' ? '' : hostIP,
-        port: protocol === 'unix' ? 0 : port,
-        protocol,
-        auth_type: authType,
-        tls_ca: authType === 'tls' ? tlsCA : '',
-        tls_cert: authType === 'tls' ? tlsCert : '',
-        tls_key: authType === 'tls' ? tlsKey : '',
-        ssh_user: authType === 'ssh' ? sshUser : '',
-        ssh_key: authType === 'ssh' ? sshKey : '',
-      });
-      setCreatedHostId(response.data.id);
+      const payload: any = { name, host_ip: hostIP, port, protocol, auth_type: authType };
+      if (authType === 'tls') { payload.tls_ca = tlsCA; payload.tls_cert = tlsCert; payload.tls_key = tlsKey; }
+      if (authType === 'ssh') { payload.ssh_user = sshUser; payload.ssh_key = sshKey; }
+      await api.post('/api/hosts', payload);
       navigate('/dashboard');
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: string } } };
       setError(axiosErr.response?.data?.error || 'Failed to create host');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  const handleTestConnection = async () => {
-    if (!createdHostId) return;
-    setTesting(true);
+  const handleTest = async () => {
+    setError('');
     setTestResult(null);
     try {
-      const response = await api.post(`/api/hosts/${createdHostId}/test-connection`);
-      setTestResult(response.data);
+      const payload: any = { name, host_ip: hostIP, port, protocol, auth_type: authType };
+      if (authType === 'tls') { payload.tls_ca = tlsCA; payload.tls_cert = tlsCert; payload.tls_key = tlsKey; }
+      if (authType === 'ssh') { payload.ssh_user = sshUser; payload.ssh_key = sshKey; }
+      const resp = await api.post('/api/hosts', payload);
+      const hostId = resp.data.id;
+      const testResp = await api.post(`/api/hosts/${hostId}/test-connection`);
+      setTestResult({ ok: true, msg: testResp.data.connected ? 'Connected!' : 'Failed' });
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: string } } };
-      setTestResult({ connected: false, error: axiosErr.response?.data?.error || 'Connection failed' });
-    } finally {
-      setTesting(false);
+      setTestResult({ ok: false, msg: axiosErr.response?.data?.error || 'Connection failed' });
     }
   };
 
   return (
-    <div className="mx-auto max-w-xl">
-      <button
-        onClick={() => navigate('/dashboard')}
-        className="mb-6 flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Dashboard
-      </button>
+    <div className="page-bg" style={{ minHeight: '100vh' }}>
+      <div style={{ padding: '2rem' }}>
+        <div style={{ maxWidth: '40rem', margin: '0 auto' }}>
+          <Link to="/dashboard" className="btn-secondary flex items-center gap-2 mb-6" style={{ fontSize: '0.875rem', textDecoration: 'none', display: 'inline-flex' }}>
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
 
-      <h1 className="mb-6 text-2xl font-bold text-white">Add Docker Host</h1>
+          <div className="glass-card-static animate-fade-in">
+            <h2 style={{ fontSize: '2rem', fontWeight: 700, color: 'white', marginBottom: '2rem', textAlign: 'center' }}>Register New Host</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {error && (
-          <div className="rounded-lg border border-red-800 bg-red-900/20 px-4 py-3 text-sm text-red-400">
-            {error}
-          </div>
-        )}
-
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-zinc-400">Name *</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder="My Docker Host"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-zinc-400">Protocol</label>
-          <select
-            value={protocol}
-            onChange={(e) => setProtocol(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="tcp">TCP</option>
-            <option value="unix">Unix Socket</option>
-            <option value="ssh">SSH</option>
-          </select>
-        </div>
-
-        {protocol !== 'unix' && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-400">Host IP *</label>
-              <input
-                type="text"
-                value={hostIP}
-                onChange={(e) => setHostIP(e.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="192.168.1.10"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-400">Port</label>
-              <input
-                type="number"
-                value={port}
-                onChange={(e) => setPort(parseInt(e.target.value) || 2375)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        )}
-
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-zinc-400">Authentication</label>
-          <select
-            value={authType}
-            onChange={(e) => setAuthType(e.target.value)}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="none">None</option>
-            <option value="tls">TLS</option>
-            <option value="ssh">SSH</option>
-          </select>
-        </div>
-
-        {authType === 'tls' && (
-          <div className="space-y-3">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-400">CA Certificate</label>
-              <textarea
-                value={tlsCA}
-                onChange={(e) => setTlsCA(e.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
-                rows={3}
-                placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-400">Client Certificate</label>
-              <textarea
-                value={tlsCert}
-                onChange={(e) => setTlsCert(e.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
-                rows={3}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-400">Client Key</label>
-              <textarea
-                value={tlsKey}
-                onChange={(e) => setTlsKey(e.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
-                rows={3}
-              />
-            </div>
-          </div>
-        )}
-
-        {authType === 'ssh' && (
-          <div className="space-y-3">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-400">SSH User</label>
-              <input
-                type="text"
-                value={sshUser}
-                onChange={(e) => setSshUser(e.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="root"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-400">SSH Key</label>
-              <textarea
-                value={sshKey}
-                onChange={(e) => setSshKey(e.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
-                rows={4}
-                placeholder="-----BEGIN OPENSSH PRIVATE KEY-----&#10;...&#10;-----END OPENSSH PRIVATE KEY-----"
-              />
-            </div>
-          </div>
-        )}
-
-        {createdHostId && (
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={handleTestConnection}
-              disabled={testing}
-              className="flex items-center gap-2 rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white disabled:opacity-50"
-            >
-              {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Test Connection
-            </button>
-            {testResult && (
-              <div className={`flex items-center gap-2 text-sm ${testResult.connected ? 'text-emerald-400' : 'text-red-400'}`}>
-                {testResult.connected ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-                {testResult.connected ? 'Connected successfully' : testResult.error || 'Connection failed'}
-              </div>
+            {error && (
+              <div className="mb-6 rounded-lg bg-red-500/20 border border-red-500/30 px-4 py-3 text-sm text-red-400">{error}</div>
             )}
-          </div>
-        )}
 
-        <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Save Host
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/dashboard')}
-            className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
-          >
-            Cancel
-          </button>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-5">
+                <label className="glass-label">Host Name</label>
+                <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="my-docker-host" className="glass-input" />
+              </div>
+
+              <div className="mb-5">
+                <label className="glass-label">Host IP / Socket Path</label>
+                <input value={hostIP} onChange={(e) => setHostIP(e.target.value)} required placeholder="192.168.1.100 or /var/run/docker.sock" className="glass-input" />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="mb-5">
+                <div>
+                  <label className="glass-label">Port</label>
+                  <input type="number" value={port} onChange={(e) => setPort(Number(e.target.value))} placeholder="2375" className="glass-input" />
+                </div>
+                <div>
+                  <label className="glass-label">Protocol</label>
+                  <select value={protocol} onChange={(e) => setProtocol(e.target.value)} className="glass-select">
+                    <option value="tcp">TCP</option>
+                    <option value="unix">Unix Socket</option>
+                    <option value="ssh">SSH</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mb-5">
+                <label className="glass-label">Authentication</label>
+                <select value={authType} onChange={(e) => setAuthType(e.target.value)} className="glass-select">
+                  <option value="none">None</option>
+                  <option value="tls">TLS</option>
+                  <option value="ssh">SSH</option>
+                </select>
+              </div>
+
+              {authType === 'tls' && (
+                <div className="mb-5 space-y-4" style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div><label className="glass-label">CA Certificate</label><textarea value={tlsCA} onChange={(e) => setTlsCA(e.target.value)} rows={3} placeholder="-----BEGIN CERTIFICATE-----..." className="glass-input" style={{ resize: 'vertical' }} /></div>
+                  <div><label className="glass-label">Client Certificate</label><textarea value={tlsCert} onChange={(e) => setTlsCert(e.target.value)} rows={3} placeholder="-----BEGIN CERTIFICATE-----..." className="glass-input" style={{ resize: 'vertical' }} /></div>
+                  <div><label className="glass-label">Client Key</label><textarea value={tlsKey} onChange={(e) => setTlsKey(e.target.value)} rows={3} placeholder="-----BEGIN PRIVATE KEY-----..." className="glass-input" style={{ resize: 'vertical' }} /></div>
+                </div>
+              )}
+
+              {authType === 'ssh' && (
+                <div className="mb-5 space-y-4" style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div><label className="glass-label">SSH User</label><input value={sshUser} onChange={(e) => setSshUser(e.target.value)} placeholder="root" className="glass-input" /></div>
+                  <div><label className="glass-label">SSH Private Key</label><textarea value={sshKey} onChange={(e) => setSshKey(e.target.value)} rows={3} placeholder="-----BEGIN OPENSSH PRIVATE KEY-----..." className="glass-input" style={{ resize: 'vertical' }} /></div>
+                </div>
+              )}
+
+              {testResult && (
+                <div className={`mb-5 rounded-lg px-4 py-3 text-sm flex items-center gap-2 ${testResult.ok ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400' : 'bg-red-500/20 border border-red-500/30 text-red-400'}`}>
+                  {testResult.ok ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                  {testResult.msg}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="submit" disabled={loading} className="btn-primary flex-1 py-3">
+                  {loading ? 'Creating...' : 'Save Host'}
+                </button>
+                <button type="button" onClick={handleTest} disabled={loading || !hostIP} className="btn-secondary flex-1 py-3">
+                  Test Connection
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
