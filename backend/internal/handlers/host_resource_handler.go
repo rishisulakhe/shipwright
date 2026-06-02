@@ -246,7 +246,7 @@ func (h *HostHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 	resp := make([]imageResponse, 0, len(images))
 	for _, img := range images {
 		repoTags := img.RepoTags
-		if repoTags == nil {
+		if repoTags == nil || len(repoTags) == 0 {
 			repoTags = []string{"<none>"}
 		}
 		resp = append(resp, imageResponse{
