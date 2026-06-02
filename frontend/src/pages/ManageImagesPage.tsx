@@ -145,7 +145,7 @@ export const ManageImagesPage: React.FC = () => {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-zinc-800 text-xs text-zinc-500">
-                  <th className="px-4 py-2.5 font-medium">Tags</th>
+                  <th className="px-4 py-2.5 font-medium">Repository</th>
                   <th className="px-4 py-2.5 font-medium">Size</th>
                   <th className="px-4 py-2.5 font-medium">Created</th>
                   <th className="px-4 py-2.5 font-medium">ID</th>
@@ -155,11 +155,15 @@ export const ManageImagesPage: React.FC = () => {
               <tbody>
                 {filtered.map((img) => (
                   <tr key={img.id} className="border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/50">
-                    <td className="px-4 py-3">
-                      {img.repo_tags.map((tag) => (
-                        <div key={tag} className="font-mono text-sm text-white">{tag}</div>
-                      ))}
-                    </td>
+<td className="px-4 py-3">
+                       {img.repo_tags.filter(t => t !== '<none>' && t !== '<none>:<none>').length > 0 ? (
+                         img.repo_tags.filter(t => t !== '<none>' && t !== '<none>:<none>').map((tag) => (
+                           <div key={tag} className="min-w-0 truncate font-mono text-sm text-white" title={tag}>{tag}</div>
+                         ))
+                       ) : (
+                         <span className="font-mono text-sm text-zinc-500">&lt;none&gt;</span>
+                       )}
+                     </td>
                     <td className="px-4 py-3 text-zinc-400">{formatBytes(img.size)}</td>
                     <td className="px-4 py-3 text-sm text-zinc-500">{formatUnixTime(img.created)}</td>
                     <td className="px-4 py-3 font-mono text-xs text-zinc-600">{img.id.replace(/^sha256:/, '').slice(0, 12)}</td>

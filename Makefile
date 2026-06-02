@@ -1,4 +1,4 @@
-.PHONY: dev-up dev-down dev-logs backend-shell db-reset clean
+.PHONY: dev-up dev-down dev-logs backend-shell db-reset clean prod-build prod-up prod-down prod-logs
 
 dev-up:
 	docker-compose up -d --build
@@ -22,3 +22,15 @@ clean:
 	docker-compose down -v
 	docker-compose rm -f
 	docker image prune -f
+
+prod-build:
+	docker-compose -f docker-compose.prod.yaml build
+
+prod-up:
+	docker-compose -f docker-compose.prod.yaml --env-file .env.production up -d
+
+prod-down:
+	docker-compose -f docker-compose.prod.yaml down
+
+prod-logs:
+	docker-compose -f docker-compose.prod.yaml logs -f
