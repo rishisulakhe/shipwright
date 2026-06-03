@@ -18,6 +18,7 @@ services:
       - dd-network
 
   backend:
+    image: shipwright-backend:prod
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -45,6 +46,7 @@ services:
       retries: 3
 
   frontend:
+    image: shipwright-frontend:prod
     build:
       context: ./frontend
       dockerfile: Dockerfile

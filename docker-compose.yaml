@@ -19,6 +19,7 @@ services:
       - dd-network
 
   backend:
+    image: shipwright-backend:dev
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
@@ -40,6 +41,7 @@ services:
       - dd-network
 
   frontend:
+    image: shipwright-frontend:dev
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
