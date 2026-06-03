@@ -236,6 +236,7 @@ func (h *HostHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	all := r.URL.Query().Get("all") == "true"
+	showDangling := r.URL.Query().Get("dangling") == "true"
 	images, err := dc.ListImages(r.Context(), all)
 	if err != nil {
 		slog.Error("failed to list images", "hostID", hostID, "error", err)
@@ -247,7 +248,19 @@ func (h *HostHandler) ListImages(w http.ResponseWriter, r *http.Request) {
 	for _, img := range images {
 		repoTags := img.RepoTags
 		if repoTags == nil || len(repoTags) == 0 {
-			repoTags = []string{"<none>"}
+			repoTags = []string{"<none>:<none>"}
+		}
+		if !showDangling {
+			allDangling := true
+			for _, tag := range repoTags {
+				if tag != "<none>" && tag != "<none>:<none>" {
+					allDangling = false
+					break
+				}
+			}
+			if allDangling {
+				continue
+			}
 		}
 		resp = append(resp, imageResponse{
 			ID:       img.ID,
