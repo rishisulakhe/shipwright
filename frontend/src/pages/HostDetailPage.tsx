@@ -57,7 +57,7 @@ export const HostDetailPage: React.FC = () => {
 
   const filteredNetworks = networks.filter((n: any) => !filter || n.name?.toLowerCase().includes(filter.toLowerCase()) || n.driver?.toLowerCase().includes(filter.toLowerCase()));
   const filteredVolumes = volumes.filter((v: any) => !filter || v.name?.toLowerCase().includes(filter.toLowerCase()));
-  const filteredImages = images.filter((i: any) => !filter || (i.repoTags?.[0] || '').toLowerCase().includes(filter.toLowerCase()));
+  const filteredImages = images.filter((i: any) => !filter || (i.repo_tags?.[0] || '').toLowerCase().includes(filter.toLowerCase()));
 
   const statCards = [
     { label: 'Containers', value: containers.length, color: '#3b82f6', icon: Box },
@@ -299,8 +299,8 @@ export const HostDetailPage: React.FC = () => {
                     <tbody>
                       {filteredImages.map((i: any) => (
                         <tr key={i.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }} className="hover:bg-white/5">
-                          <td style={{ padding: '0.75rem 1rem', color: 'white', fontFamily: 'monospace', fontSize: '0.875rem' }}>{i.repoTags?.[0]?.split(':')[0] || '<none>'}</td>
-                          <td style={{ padding: '0.75rem 1rem', color: '#9ca3af', fontSize: '0.875rem' }}>{i.repoTags?.[0]?.split(':')[1] || 'latest'}</td>
+                          <td style={{ padding: '0.75rem 1rem', color: 'white', fontFamily: 'monospace', fontSize: '0.875rem' }}>{i.repo_tags?.[0]?.split(':')[0] || '<none>'}</td>
+                          <td style={{ padding: '0.75rem 1rem', color: '#9ca3af', fontSize: '0.875rem' }}>{i.repo_tags?.[0]?.split(':')[1] || 'latest'}</td>
                           <td style={{ padding: '0.75rem 1rem', color: '#9ca3af', fontSize: '0.875rem', textAlign: 'right' }}>{formatBytes(i.size)}</td>
                         </tr>
                       ))}
