@@ -18,8 +18,7 @@ RUN apk add --no-cache ca-certificates curl tzdata
 COPY --from=builder /server /usr/local/bin/server
 COPY --from=builder /app/migrations /migrations/
 
-RUN adduser -D -u 1000 appuser
-USER appuser
+
 
 EXPOSE 8080
 
