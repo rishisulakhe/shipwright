@@ -1,4 +1,4 @@
-.PHONY: dev-up dev-down dev-logs backend-shell db-reset clean prod-build prod-up prod-down prod-logs
+.PHONY: dev-up dev-down dev-logs backend-shell db-reset clean prod-build prod-up prod-down prod-logs test test-cover test-integration
 
 dev-up:
 	docker-compose up -d --build
@@ -34,3 +34,12 @@ prod-down:
 
 prod-logs:
 	docker-compose -f docker-compose.prod.yaml logs -f
+
+test:
+	cd backend && go test ./... -v -count=1 -timeout 60s
+
+test-cover:
+	cd backend && go test ./... -coverprofile=coverage.out -timeout 60s && go tool cover -html=coverage.out -o coverage.html && echo "Coverage report generated: coverage.html"
+
+test-integration:
+	cd backend && go test -tags=integration ./... -v -count=1 -timeout 120s
