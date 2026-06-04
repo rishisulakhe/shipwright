@@ -44,7 +44,7 @@ type controlMessage struct {
 	Tail   string `json:"tail,omitempty"`
 }
 
-func HandleLogStream(repos *repository.Repositories, clients map[uuid.UUID]*dockerclient.DockerClient, jwtSecret []byte) http.HandlerFunc {
+func HandleLogStream(repos *repository.Repositories, clients map[uuid.UUID]dockerclient.DockerProvider, jwtSecret []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := r.URL.Query().Get("token")
 		if tokenStr == "" {
@@ -117,7 +117,7 @@ func HandleLogStream(repos *repository.Repositories, clients map[uuid.UUID]*dock
 	}
 }
 
-func (lc *logClient) streamLogs(ctx context.Context, dc *dockerclient.DockerClient, tail string) {
+func (lc *logClient) streamLogs(ctx context.Context, dc dockerclient.DockerProvider, tail string) {
 	opts := container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
@@ -164,7 +164,7 @@ func (lc *logClient) streamLogs(ctx context.Context, dc *dockerclient.DockerClie
 	lc.send <- msg
 }
 
-func (lc *logClient) readPump(dc *dockerclient.DockerClient, repos *repository.Repositories, clients map[uuid.UUID]*dockerclient.DockerClient, initialTail string) {
+func (lc *logClient) readPump(dc dockerclient.DockerProvider, repos *repository.Repositories, clients map[uuid.UUID]dockerclient.DockerProvider, initialTail string) {
 	defer func() {
 		lc.dockerCtx()
 		lc.conn.Close()
@@ -248,7 +248,7 @@ func (lc *logClient) writePump() {
 	}
 }
 
-func getOrCreateDockerClient(ctx context.Context, repos *repository.Repositories, clients map[uuid.UUID]*dockerclient.DockerClient, hostID uuid.UUID) (*dockerclient.DockerClient, error) {
+func getOrCreateDockerClient(ctx context.Context, repos *repository.Repositories, clients map[uuid.UUID]dockerclient.DockerProvider, hostID uuid.UUID) (dockerclient.DockerProvider, error) {
 	if dc, ok := clients[hostID]; ok {
 		return dc, nil
 	}
