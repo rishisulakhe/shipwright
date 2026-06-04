@@ -16,17 +16,17 @@ import (
 
 type NetworkHandler struct {
 	Repos   *repository.Repositories
-	clients map[uuid.UUID]*dockerclient.DockerClient
+clients map[uuid.UUID]dockerclient.DockerProvider
 }
 
-func NewNetworkHandler(repos *repository.Repositories, clients map[uuid.UUID]*dockerclient.DockerClient) *NetworkHandler {
+func NewNetworkHandler(repos *repository.Repositories, clients map[uuid.UUID]dockerclient.DockerProvider) *NetworkHandler {
 	return &NetworkHandler{
 		Repos:   repos,
 		clients: clients,
 	}
 }
 
-func (h *NetworkHandler) getOrCreateClient(ctx context.Context, hostID uuid.UUID) (*dockerclient.DockerClient, error) {
+func (h *NetworkHandler) getOrCreateClient(ctx context.Context, hostID uuid.UUID) (dockerclient.DockerProvider, error) {
 	if dc, ok := h.clients[hostID]; ok {
 		return dc, nil
 	}
