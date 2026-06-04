@@ -19,18 +19,18 @@ import (
 type HostHandler struct {
 	Repos      *repository.Repositories
 	JWTSecret  []byte
-	clients    map[uuid.UUID]*dockerclient.DockerClient
+	clients    map[uuid.UUID]dockerclient.DockerProvider
 }
 
 func NewHostHandler(repos *repository.Repositories, jwtSecret []byte) *HostHandler {
 	return &HostHandler{
 		Repos:     repos,
 		JWTSecret: jwtSecret,
-		clients:   make(map[uuid.UUID]*dockerclient.DockerClient),
+		clients:   make(map[uuid.UUID]dockerclient.DockerProvider),
 	}
 }
 
-func (h *HostHandler) GetClients() map[uuid.UUID]*dockerclient.DockerClient {
+func (h *HostHandler) GetClients() map[uuid.UUID]dockerclient.DockerProvider {
 	return h.clients
 }
 
