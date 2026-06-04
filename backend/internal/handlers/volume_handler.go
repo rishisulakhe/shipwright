@@ -16,17 +16,17 @@ import (
 
 type VolumeHandler struct {
 	Repos   *repository.Repositories
-	clients map[uuid.UUID]*dockerclient.DockerClient
+clients map[uuid.UUID]dockerclient.DockerProvider
 }
 
-func NewVolumeHandler(repos *repository.Repositories, clients map[uuid.UUID]*dockerclient.DockerClient) *VolumeHandler {
+func NewVolumeHandler(repos *repository.Repositories, clients map[uuid.UUID]dockerclient.DockerProvider) *VolumeHandler {
 	return &VolumeHandler{
 		Repos:   repos,
 		clients: clients,
 	}
 }
 
-func (h *VolumeHandler) getOrCreateClient(ctx context.Context, hostID uuid.UUID) (*dockerclient.DockerClient, error) {
+func (h *VolumeHandler) getOrCreateClient(ctx context.Context, hostID uuid.UUID) (dockerclient.DockerProvider, error) {
 	if dc, ok := h.clients[hostID]; ok {
 		return dc, nil
 	}
