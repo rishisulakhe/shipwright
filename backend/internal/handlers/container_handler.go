@@ -25,17 +25,17 @@ import (
 
 type ContainerHandler struct {
 	Repos   *repository.Repositories
-	clients map[uuid.UUID]*dockerclient.DockerClient
+clients map[uuid.UUID]dockerclient.DockerProvider
 }
 
-func NewContainerHandler(repos *repository.Repositories, clients map[uuid.UUID]*dockerclient.DockerClient) *ContainerHandler {
+func NewContainerHandler(repos *repository.Repositories, clients map[uuid.UUID]dockerclient.DockerProvider) *ContainerHandler {
 	return &ContainerHandler{
 		Repos:   repos,
 		clients: clients,
 	}
 }
 
-func (h *ContainerHandler) getOrCreateClient(ctx context.Context, hostID uuid.UUID) (*dockerclient.DockerClient, error) {
+func (h *ContainerHandler) getOrCreateClient(ctx context.Context, hostID uuid.UUID) (dockerclient.DockerProvider, error) {
 	if dc, ok := h.clients[hostID]; ok {
 		return dc, nil
 	}
@@ -312,7 +312,7 @@ func (h *ContainerHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *ContainerHandler) resolveHostAndClient(r *http.Request) (uuid.UUID, *dockerclient.DockerClient, int, string) {
+func (h *ContainerHandler) resolveHostAndClient(r *http.Request) (uuid.UUID, dockerclient.DockerProvider, int, string) {
 	hostID, err := uuid.Parse(chi.URLParam(r, "hostID"))
 	if err != nil {
 		return uuid.Nil, nil, http.StatusBadRequest, "invalid host id"
