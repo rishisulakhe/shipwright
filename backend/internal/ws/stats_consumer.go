@@ -46,7 +46,7 @@ type statsMessage struct {
 	Error          string  `json:"error,omitempty"`
 }
 
-func HandleStatsStream(repos *repository.Repositories, clients map[uuid.UUID]*dockerclient.DockerClient, jwtSecret []byte) http.HandlerFunc {
+func HandleStatsStream(repos *repository.Repositories, clients map[uuid.UUID]dockerclient.DockerProvider, jwtSecret []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := r.URL.Query().Get("token")
 		if tokenStr == "" {
@@ -111,7 +111,7 @@ func HandleStatsStream(repos *repository.Repositories, clients map[uuid.UUID]*do
 	}
 }
 
-func (sc *statsClient) streamStats(ctx context.Context, dc *dockerclient.DockerClient, cancel context.CancelFunc) {
+func (sc *statsClient) streamStats(ctx context.Context, dc dockerclient.DockerProvider, cancel context.CancelFunc) {
 	defer cancel()
 
 	statsReader, err := dc.ContainerStats(ctx, sc.containerID, true)
