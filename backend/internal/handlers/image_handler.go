@@ -19,17 +19,17 @@ import (
 
 type ImageHandler struct {
 	Repos   *repository.Repositories
-	clients map[uuid.UUID]*dockerclient.DockerClient
+clients map[uuid.UUID]dockerclient.DockerProvider
 }
 
-func NewImageHandler(repos *repository.Repositories, clients map[uuid.UUID]*dockerclient.DockerClient) *ImageHandler {
+func NewImageHandler(repos *repository.Repositories, clients map[uuid.UUID]dockerclient.DockerProvider) *ImageHandler {
 	return &ImageHandler{
 		Repos:   repos,
 		clients: clients,
 	}
 }
 
-func (h *ImageHandler) getOrCreateClient(ctx context.Context, hostID uuid.UUID) (*dockerclient.DockerClient, error) {
+func (h *ImageHandler) getOrCreateClient(ctx context.Context, hostID uuid.UUID) (dockerclient.DockerProvider, error) {
 	if dc, ok := h.clients[hostID]; ok {
 		return dc, nil
 	}
