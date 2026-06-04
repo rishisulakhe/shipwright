@@ -51,7 +51,7 @@ type imageResponse struct {
 	Created  int64    `json:"created"`
 }
 
-func (h *HostHandler) getOrCreateClient(ctx context.Context, hostID uuid.UUID) (*dockerclient.DockerClient, error) {
+func (h *HostHandler) getOrCreateClient(ctx context.Context, hostID uuid.UUID) (dockerclient.DockerProvider, error) {
 	if dc, ok := h.clients[hostID]; ok {
 		return dc, nil
 	}
