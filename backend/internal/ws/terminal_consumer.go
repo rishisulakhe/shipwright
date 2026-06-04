@@ -32,7 +32,7 @@ type termMessage struct {
 	Cols uint   `json:"cols,omitempty"`
 }
 
-func HandleExecStream(repos *repository.Repositories, clients map[uuid.UUID]*dockerclient.DockerClient, jwtSecret []byte) http.HandlerFunc {
+func HandleExecStream(repos *repository.Repositories, clients map[uuid.UUID]dockerclient.DockerProvider, jwtSecret []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := r.URL.Query().Get("token")
 		if tokenStr == "" {
