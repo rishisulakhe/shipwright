@@ -42,3 +42,15 @@ lint-frontend:
 
 lint-frontend-fix:
 	cd frontend && npx eslint . --fix
+
+prod-build:
+	docker-compose -f docker-compose.prod.yaml build
+
+prod-up:
+	docker-compose -f docker-compose.prod.yaml --env-file .env.production up -d --build
+
+prod-down:
+	docker-compose -f docker-compose.prod.yaml down
+
+prod-logs:
+	docker-compose -f docker-compose.prod.yaml logs -f
