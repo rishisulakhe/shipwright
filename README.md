@@ -10,6 +10,88 @@ A centralized multi-host Docker management dashboard built with **Go** and **Rea
 
 ---
 
+## Project architechture
+
+```mermaid
+flowchart TD
+    Browser["🌐 Browser"] -->|HTTP / WS| Ingress
+
+    subgraph K8S["☸️ Kubernetes Cluster"]
+        Ingress["🚦 Ingress NGINX<br/>docker-dash.local"]
+
+        subgraph Frontend["⚛️ Frontend (React + Vite)"]
+            ReactUI["React + Tailwind<br/>Charts, xterm.js"]
+            FrontendSVC["frontend-service<br/>ClusterIP :80"]
+            ReactUI --> FrontendSVC
+        end
+
+        subgraph Backend["🟢 Backend (Go + Chi)"]
+            APIRouter["API Router + JWT Auth"]
+            HostMgr["Host Manager"]
+            ContainerMgr["Container Manager"]
+            NetworkMgr["Network Manager"]
+            VolumeMgr["Volume Manager"]
+            ImageMgr["Image Manager"]
+            LogStream["Log Streamer<br/>WebSocket"]
+            StatsMon["Stats Monitor<br/>WebSocket"]
+            Terminal["Interactive Terminal<br/>WebSocket"]
+            BackendSVC["backend-service<br/>ClusterIP :8080"]
+
+            APIRouter --> HostMgr
+            APIRouter --> ContainerMgr
+            APIRouter --> NetworkMgr
+            APIRouter --> VolumeMgr
+            APIRouter --> ImageMgr
+            APIRouter --> LogStream
+            APIRouter --> StatsMon
+            APIRouter --> Terminal
+            APIRouter --> BackendSVC
+        end
+
+        subgraph Database["🐘 PostgreSQL StatefulSet"]
+            PostgresSVC["postgres-service<br/>ClusterIP :5432"]
+            PostgresPod["PostgreSQL Pod"]
+            PV["💾 PV 1Gi"]
+
+            PostgresSVC --> PostgresPod --> PV
+        end
+
+        subgraph Config["⚙️ Configuration"]
+            CM["📄 ConfigMap<br/>DATABASE_URL<br/>MIGRATIONS_PATH<br/>POSTGRES_DB / USER"]
+            Sec["🔐 Secret<br/>POSTGRES_PASSWORD<br/>JWT_SECRET"]
+        end
+
+        Ingress -->|"/ /ws"| FrontendSVC
+        Ingress -->|"/api"| BackendSVC
+
+        HostMgr -.->|Docker Socket| D1
+        HostMgr -.->|Docker Socket| D2
+        HostMgr -.->|Docker Socket| DN
+        ContainerMgr -.->|Docker SDK| D1
+        NetworkMgr -.->|Docker SDK| D1
+        VolumeMgr -.->|Docker SDK| D1
+        ImageMgr -.->|Docker SDK| D1
+
+        BackendSVC -->|TCP 5432| PostgresSVC
+        CM -.->|env| BackendSVC
+        Sec -.->|env| BackendSVC
+        CM -.->|env| PostgresPod
+        Sec -.->|env| PostgresPod
+    end
+
+    subgraph Hosts["🐳 Docker Hosts"]
+        D1["Docker Host 1<br/>Docker Daemon"]
+        D2["Docker Host 2<br/>Docker Daemon"]
+        DN["Docker Host N<br/>Docker Daemon"]
+    end
+
+    D1 -.->|"hostPath<br/>/var/run/docker.sock"| Backend
+    D2 -.->|"registered<br/>TCP endpoint"| Backend
+    DN -.->|"registered<br/>TCP endpoint"| Backend
+```
+
+---
+
 ## Features
 
 - **Multi-host management** — Register Unix socket, TCP, or SSH Docker hosts
@@ -24,7 +106,8 @@ A centralized multi-host Docker management dashboard built with **Go** and **Rea
 
 ---
 
-## Architecture
+
+## Architecture(k8s)
 
 ```mermaid
 flowchart TD
