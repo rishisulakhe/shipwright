@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log/slog"
 	"net/http"
 	"os"
@@ -21,6 +22,9 @@ import (
 )
 
 func main() {
+	migrateOnly := flag.Bool("migrate", false, "run database migrations and exit")
+	flag.Parse()
+
 	cfg := config.Load()
 
 	level := new(slog.LevelVar)
@@ -43,6 +47,16 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
+
+	if err := database.RunMigrations(db, cfg.MigrationsPath); err != nil {
+		slog.Error("failed to run migrations", "error", err)
+		os.Exit(1)
+	}
+
+	if *migrateOnly {
+		slog.Info("migrations completed, exiting")
+		os.Exit(0)
+	}
 
 	repos := repository.NewRepositories(db)
 
