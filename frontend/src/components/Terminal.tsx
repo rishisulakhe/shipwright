@@ -28,7 +28,11 @@ export default function Terminal({ hostID, containerID }: TerminalProps) {
       return;
     }
 
-    const wsUrl = `ws://localhost:8080/api/ws/hosts/${hostID}/containers/${containerID}/exec?token=${encodeURIComponent(token)}`;
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsBase = import.meta.env.VITE_API_BASE_URL
+      ? import.meta.env.VITE_API_BASE_URL.replace(/^http/, 'ws')
+      : `${wsProtocol}//${window.location.host}`;
+    const wsUrl = `${wsBase}/api/ws/hosts/${hostID}/containers/${containerID}/exec?token=${encodeURIComponent(token)}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 

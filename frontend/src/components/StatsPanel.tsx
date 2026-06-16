@@ -60,7 +60,7 @@ export default function StatsPanel({ hostID, containerID }: StatsPanelProps) {
     if (!token) return;
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsHost = window.location.hostname === 'localhost' ? 'localhost:8080' : window.location.host;
+    const wsHost = window.location.host;
     const wsUrl = `${wsProtocol}//${wsHost}/api/ws/hosts/${hostID}/containers/${containerID}/stats?token=${token}`;
 
     const ws = new WebSocket(wsUrl);

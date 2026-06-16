@@ -187,7 +187,11 @@ export const ContainerDetailPage: React.FC = () => {
     if (!token || !hostId || !containerId) return;
     if (wsRef.current) wsRef.current.close();
 
-    const ws = new WebSocket(`ws://localhost:8080/api/ws/hosts/${hostId}/containers/${containerId}/logs?tail=100&token=${encodeURIComponent(token)}`);
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsBase = import.meta.env.VITE_API_BASE_URL
+      ? import.meta.env.VITE_API_BASE_URL.replace(/^http/, 'ws')
+      : `${wsProtocol}//${window.location.host}`;
+    const ws = new WebSocket(`${wsBase}/api/ws/hosts/${hostId}/containers/${containerId}/logs?tail=100&token=${encodeURIComponent(token)}`);
     ws.onopen = () => { setStreaming(true); setShowLogs(true); };
     ws.onmessage = (event) => {
       try {
