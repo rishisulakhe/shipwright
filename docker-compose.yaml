@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: dd-db
+    container_name: shipwright-db
     ports:
       - "5432:5432"
     environment:
