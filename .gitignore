@@ -4,6 +4,7 @@ frontend/node_modules/
 
 # Build output
 backend/tmp/
+backend/server
 frontend/dist/
 
 # IDE
@@ -31,3 +32,6 @@ pgdata/
 # Test coverage
 coverage.out
 coverage.html
+
+# Infrastructure secrets (generate from .example)
+infra/k8s/secret.yaml

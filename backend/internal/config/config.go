@@ -13,8 +13,8 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		Port:           getEnv("PORT", "8080"),
-		DatabaseURL:    getEnv("DATABASE_URL", "postgres://dduser:ddpass@db:5432/dockerdash?sslmode=disable"),
-		JWTSecret:      getEnv("JWT_SECRET", "change-me-in-production"),
+		DatabaseURL:    getEnv("DATABASE_URL", ""),
+		JWTSecret:      getEnv("JWT_SECRET", ""),
 		LogLevel:       getEnv("LOG_LEVEL", "info"),
 		MigrationsPath: getEnv("MIGRATIONS_PATH", "migrations"),
 	}

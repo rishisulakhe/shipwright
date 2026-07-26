@@ -4,13 +4,13 @@ services:
     container_name: dd-prod-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-dduser}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ddpass}
+      POSTGRES_USER: ${POSTGRES_USER:?required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
       POSTGRES_DB: ${POSTGRES_DB:-dockerdash}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dduser} -d ${POSTGRES_DB:-dockerdash}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB:-dockerdash}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,8 +27,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-dduser}:${POSTGRES_PASSWORD:-ddpass}@db:5432/${POSTGRES_DB:-dockerdash}?sslmode=disable
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DATABASE_URL: postgres://${POSTGRES_USER:?required}:${POSTGRES_PASSWORD:?required}@db:5432/${POSTGRES_DB:-dockerdash}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:?required}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       PORT: "8080"
     volumes:

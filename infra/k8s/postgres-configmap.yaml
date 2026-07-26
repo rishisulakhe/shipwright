@@ -6,5 +6,4 @@ metadata:
 data:
   POSTGRES_DB: dockerdash
   POSTGRES_USER: dduser
-  DATABASE_URL: postgres://dduser:ddpass@postgres-service:5432/dockerdash?sslmode=disable
   MIGRATIONS_PATH: /migrations
