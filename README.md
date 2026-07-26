@@ -142,8 +142,8 @@ flowchart TD
         end
 
         subgraph Config["Configuration"]
-            CM["📄 ConfigMap<br/>POSTGRES_DB · POSTGRES_USER<br/>DATABASE_URL · MIGRATIONS_PATH"]
-            Sec["🔐 Secret<br/>POSTGRES_PASSWORD · JWT_SECRET"]
+            CM["📄 ConfigMap<br/>POSTGRES_DB · POSTGRES_USER<br/>MIGRATIONS_PATH"]
+            Sec["🔐 Secret<br/>DATABASE_URL · POSTGRES_PASSWORD<br/>JWT_SECRET"]
         end
 
         Ingress -->|/ & /api/ws| FrontendSVC
@@ -168,9 +168,12 @@ flowchart TD
 
 ### Docker Compose (Development)
 
+Copy the environment template and start:
+
 ```bash
 git clone https://github.com/YOUR_USERNAME/shipwright.git
 cd shipwright
+cp .env.example .env  # edit with your own values
 make dev-up
 ```
 
@@ -181,6 +184,16 @@ make dev-up
 | PostgreSQL | localhost:5432 |
 
 ### Kubernetes (kind)
+
+First, create the secrets file from the example template:
+
+```bash
+cp infra/k8s/secret.yaml.example infra/k8s/secret.yaml
+# Edit infra/k8s/secret.yaml — replace CHANGE_ME values with base64-encoded strings
+# To generate base64 values: echo -n "your-value" | base64
+```
+
+Then deploy:
 
 ```bash
 cd shipwright
@@ -216,6 +229,7 @@ shipwright/
 │   ├── postgres-*.yaml
 │   ├── backend-*.yaml
 │   ├── frontend-*.yaml
+│   ├── secret.yaml.example  # Template (real secret.yaml is gitignored)
 │   └── ingress.yaml
 ├── docker-compose.yaml      # Dev stack
 ├── docker-compose.prod.yaml # Production stack
