@@ -10,88 +10,6 @@ A centralized multi-host Docker management dashboard built with **Go** and **Rea
 
 ---
 
-## Project architechture
-
-```mermaid
-flowchart TD
-    Browser["🌐 Browser"] -->|HTTP / WS| Ingress
-
-    subgraph K8S["☸️ Kubernetes Cluster"]
-        Ingress["🚦 Ingress NGINX<br/>docker-dash.local"]
-
-        subgraph Frontend["⚛️ Frontend (React + Vite)"]
-            ReactUI["React + Tailwind<br/>Charts, xterm.js"]
-            FrontendSVC["frontend-service<br/>ClusterIP :80"]
-            ReactUI --> FrontendSVC
-        end
-
-        subgraph Backend["🟢 Backend (Go + Chi)"]
-            APIRouter["API Router + JWT Auth"]
-            HostMgr["Host Manager"]
-            ContainerMgr["Container Manager"]
-            NetworkMgr["Network Manager"]
-            VolumeMgr["Volume Manager"]
-            ImageMgr["Image Manager"]
-            LogStream["Log Streamer<br/>WebSocket"]
-            StatsMon["Stats Monitor<br/>WebSocket"]
-            Terminal["Interactive Terminal<br/>WebSocket"]
-            BackendSVC["backend-service<br/>ClusterIP :8080"]
-
-            APIRouter --> HostMgr
-            APIRouter --> ContainerMgr
-            APIRouter --> NetworkMgr
-            APIRouter --> VolumeMgr
-            APIRouter --> ImageMgr
-            APIRouter --> LogStream
-            APIRouter --> StatsMon
-            APIRouter --> Terminal
-            APIRouter --> BackendSVC
-        end
-
-        subgraph Database["🐘 PostgreSQL StatefulSet"]
-            PostgresSVC["postgres-service<br/>ClusterIP :5432"]
-            PostgresPod["PostgreSQL Pod"]
-            PV["💾 PV 1Gi"]
-
-            PostgresSVC --> PostgresPod --> PV
-        end
-
-        subgraph Config["⚙️ Configuration"]
-            CM["📄 ConfigMap<br/>DATABASE_URL<br/>MIGRATIONS_PATH<br/>POSTGRES_DB / USER"]
-            Sec["🔐 Secret<br/>POSTGRES_PASSWORD<br/>JWT_SECRET"]
-        end
-
-        Ingress -->|"/ /ws"| FrontendSVC
-        Ingress -->|"/api"| BackendSVC
-
-        HostMgr -.->|Docker Socket| D1
-        HostMgr -.->|Docker Socket| D2
-        HostMgr -.->|Docker Socket| DN
-        ContainerMgr -.->|Docker SDK| D1
-        NetworkMgr -.->|Docker SDK| D1
-        VolumeMgr -.->|Docker SDK| D1
-        ImageMgr -.->|Docker SDK| D1
-
-        BackendSVC -->|TCP 5432| PostgresSVC
-        CM -.->|env| BackendSVC
-        Sec -.->|env| BackendSVC
-        CM -.->|env| PostgresPod
-        Sec -.->|env| PostgresPod
-    end
-
-    subgraph Hosts["🐳 Docker Hosts"]
-        D1["Docker Host 1<br/>Docker Daemon"]
-        D2["Docker Host 2<br/>Docker Daemon"]
-        DN["Docker Host N<br/>Docker Daemon"]
-    end
-
-    D1 -.->|"hostPath<br/>/var/run/docker.sock"| Backend
-    D2 -.->|"registered<br/>TCP endpoint"| Backend
-    DN -.->|"registered<br/>TCP endpoint"| Backend
-```
-
----
-
 ## Features
 
 - **Multi-host management** — Register Unix socket, TCP, or SSH Docker hosts
@@ -106,74 +24,61 @@ flowchart TD
 
 ---
 
-
-## Architecture(k8s)
+## Architecture
 
 ```mermaid
 flowchart TD
-    Browser["🌐 Browser"] -->|http://docker-dash.local| Ingress
+    Browser["🌐 Browser"] -->|HTTP / WS| Frontend
 
-    subgraph KIND_CLUSTER["☸️ KIND CLUSTER"]
-        Ingress["🚦 Ingress NGINX<br/>docker-dash.local"]
+    subgraph Application["Shipwright"]
+        Frontend["⚛️ React + Vite<br/>Tailwind · Chart.js · xterm.js"]
+        Backend["🟢 Go + Chi Router<br/>JWT Auth · REST API · WebSocket"]
 
-        subgraph Frontend["Frontend Deployment"]
-            FrontendSVC["frontend-service<br/>ClusterIP: 80"]
-            ReactPod["⚛️ React + Nginx Pod"]
+        Frontend -->|"/api"| Backend
 
-            FrontendSVC --> ReactPod
-        end
+        Backend --> HostMgr["Host Manager"]
+        Backend --> ContainerMgr["Container Manager"]
+        Backend --> NetworkMgr["Network Manager"]
+        Backend --> VolumeMgr["Volume Manager"]
+        Backend --> ImageMgr["Image Manager"]
+        Backend --> LogStream["Log Streamer<br/>WebSocket"]
+        Backend --> StatsMon["Stats Monitor<br/>WebSocket"]
+        Backend --> Terminal["Interactive Terminal<br/>WebSocket"]
 
-        subgraph Backend["Backend Deployment (2 Replicas)"]
-            BackendSVC["backend-service<br/>ClusterIP: 8080"]
-            GoPod1["🟢 Go Pod 1"]
-            GoPod2["🟢 Go Pod 2"]
-
-            BackendSVC --> GoPod1
-            BackendSVC --> GoPod2
-        end
-
-        subgraph Database["PostgreSQL StatefulSet"]
-            PostgresSVC["postgres-service<br/>ClusterIP: 5432"]
-            PostgresPod["🐘 PostgreSQL Pod"]
-            PV["💾 PersistentVolume (1Gi)"]
-
-            PostgresSVC --> PostgresPod
-            PostgresPod --> PV
-        end
-
-        subgraph Config["Configuration"]
-            CM["📄 ConfigMap<br/>POSTGRES_DB · POSTGRES_USER<br/>MIGRATIONS_PATH"]
-            Sec["🔐 Secret<br/>DATABASE_URL · POSTGRES_PASSWORD<br/>JWT_SECRET"]
-        end
-
-        Ingress -->|/ & /api/ws| FrontendSVC
-        Ingress -->|/api| BackendSVC
-
-        GoPod1 -->|TCP 5432| PostgresSVC
-        GoPod2 -->|TCP 5432| PostgresSVC
-
-        CM -.->|env vars| GoPod1
-        CM -.->|env vars| PostgresPod
-        Sec -.->|env vars| GoPod1
-        Sec -.->|env vars| PostgresPod
-
-        GoPod1 -.->|/var/run/docker.sock| DockerSocket["🔌 Docker Socket (hostPath)"]
-        GoPod2 -.->|/var/run/docker.sock| DockerSocket
+        Database["🐘 PostgreSQL"]
+        Backend --> Database
     end
+
+    subgraph Hosts["🐳 Docker Hosts"]
+        D1["Host 1<br/>Unix Socket"]
+        D2["Host 2<br/>TCP Endpoint"]
+        DN["Host N<br/>SSH Tunnel"]
+    end
+
+    HostMgr -.-> D1
+    HostMgr -.-> D2
+    HostMgr -.-> DN
+    ContainerMgr -.-> D1
+    ContainerMgr -.-> D2
+    ContainerMgr -.-> DN
 ```
 
 ---
 
 ## Quick Start
 
-### Docker Compose (Development)
+### Docker Compose (Recommended)
 
-Copy the environment template and start:
+Shipwright ships as a Docker Compose stack. Pick your path:
+
+#### Development
+
+Hot-reload enabled for both frontend and backend:
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/shipwright.git
 cd shipwright
-cp .env.example .env  # edit with your own values
+cp .env.example .env    # edit with your own values
 make dev-up
 ```
 
@@ -183,29 +88,28 @@ make dev-up
 | Backend API | http://localhost:8080 |
 | PostgreSQL | localhost:5432 |
 
-### Kubernetes (kind)
-
-First, create the secrets file from the example template:
+#### Production
 
 ```bash
-cp infra/k8s/secret.yaml.example infra/k8s/secret.yaml
-# Edit infra/k8s/secret.yaml — replace CHANGE_ME values with base64-encoded strings
-# To generate base64 values: echo -n "your-value" | base64
+cp .env.example .env
+# Edit .env — set strong POSTGRES_PASSWORD and JWT_SECRET
+docker compose -f docker-compose.prod.yaml up -d
 ```
 
-Then deploy:
+Then open **http://localhost**.
+
+---
+
+### Also runs on Kubernetes
+
+An optional [kind](https://kind.sigs.k8s.io/) deployment example is available at [`deploy/kind-example/`](deploy/kind-example/).
 
 ```bash
-cd shipwright
+cp deploy/kind-example/secret.yaml.example deploy/kind-example/secret.yaml
 bash scripts/k8s-deploy.sh
 ```
 
-Add to `/etc/hosts`:
-```
-127.0.0.1 docker-dash.local
-```
-
-Then open **http://docker-dash.local**
+See [`deploy/kind-example/README.md`](deploy/kind-example/README.md) for full details and limitations.
 
 ---
 
@@ -223,7 +127,7 @@ shipwright/
 │   ├── src/                 # React components, pages, services
 │   ├── Dockerfile           # Multi-stage build with Nginx (~21MB)
 │   └── nginx.conf           # SPA routing, gzip, API proxy
-├── infra/k8s/              # Kubernetes manifests
+├── deploy/kind-example/     # Kubernetes manifests (optional learning path)
 │   ├── kind-cluster.yaml
 │   ├── namespace.yaml
 │   ├── postgres-*.yaml
@@ -231,7 +135,7 @@ shipwright/
 │   ├── frontend-*.yaml
 │   ├── secret.yaml.example  # Template (real secret.yaml is gitignored)
 │   └── ingress.yaml
-├── docker-compose.yaml      # Dev stack
+├── docker-compose.yaml      # Dev stack with hot-reload
 ├── docker-compose.prod.yaml # Production stack
 ├── Makefile
 └── scripts/k8s-deploy.sh
@@ -253,4 +157,4 @@ make lint-frontend  # Frontend lint only (or lint-frontend-fix)
 
 ## License
 
-This project is private and proprietary.
+MIT

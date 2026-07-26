@@ -7,7 +7,7 @@ echo "=== Creating kind cluster ==="
 if kind get clusters | grep -q "^${CLUSTER_NAME}$"; then
   echo "Cluster '${CLUSTER_NAME}' already exists, skipping creation."
 else
-  kind create cluster --name "${CLUSTER_NAME}" --config infra/k8s/kind-cluster.yaml
+  kind create cluster --name "${CLUSTER_NAME}" --config deploy/kind-example/kind-cluster.yaml
 fi
 
 echo ""
@@ -33,17 +33,17 @@ kind load docker-image shipwright-frontend:prod --name "${CLUSTER_NAME}"
 
 echo ""
 echo "=== Applying manifests ==="
-kubectl apply -f infra/k8s/namespace.yaml
-kubectl apply -f infra/k8s/secret.yaml
-kubectl apply -f infra/k8s/postgres-configmap.yaml
-kubectl apply -f infra/k8s/postgres-service.yaml
-kubectl apply -f infra/k8s/postgres-statefullset.yaml
-kubectl apply -f infra/k8s/backend-service.yaml
-kubectl apply -f infra/k8s/backend-deployment.yaml
-kubectl apply -f infra/k8s/frontend-configmap.yaml
-kubectl apply -f infra/k8s/frontend-service.yaml
-kubectl apply -f infra/k8s/frontend-deployment.yaml
-kubectl apply -f infra/k8s/ingress.yaml
+kubectl apply -f deploy/kind-example/namespace.yaml
+kubectl apply -f deploy/kind-example/secret.yaml
+kubectl apply -f deploy/kind-example/postgres-configmap.yaml
+kubectl apply -f deploy/kind-example/postgres-service.yaml
+kubectl apply -f deploy/kind-example/postgres-statefullset.yaml
+kubectl apply -f deploy/kind-example/backend-service.yaml
+kubectl apply -f deploy/kind-example/backend-deployment.yaml
+kubectl apply -f deploy/kind-example/frontend-configmap.yaml
+kubectl apply -f deploy/kind-example/frontend-service.yaml
+kubectl apply -f deploy/kind-example/frontend-deployment.yaml
+kubectl apply -f deploy/kind-example/ingress.yaml
 
 echo ""
 echo "=== Waiting for pods ==="
